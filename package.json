@@ -1,0 +1,67 @@
+{
+  "name": "@touchque/react",
+  "version": "1.0.0",
+  "description": "React bindings for @touchque/web \u2014 passkey sign-in hook and button",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Touchque/touchque-react"
+  },
+  "homepage": "https://touchque.com",
+  "license": "MIT",
+  "author": "TouchQue",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "touchque",
+    "passkey",
+    "webauthn",
+    "passwordless",
+    "react",
+    "hooks"
+  ],
+  "peerDependencies": {
+    "@touchque/web": "^1.0.0",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@touchque/web": "file:../touchque-web",
+    "@types/react": "^18.3.12",
+    "jsdom": "^25.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "vitest": "^2.1.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
