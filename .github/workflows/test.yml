@@ -9,19 +9,24 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      # @touchque/react depends on @touchque/web as a local `file:../touchque-web`
+      # dependency during development: check both out side by side, the same
+      # way a contributor with both repos cloned has them.
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      # @touchque/react depends on @touchque/web as a local `file:` dependency
-      # during development — check it out as a sibling directory so that
-      # resolves the same way it does for a contributor with both repos cloned.
+          path: touchque-react
       - uses: actions/checkout@v4
         with:
           repository: Touchque/touchque-web
           path: touchque-web
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - run: npm ci && npm run build
         working-directory: touchque-web
       - run: npm ci
+        working-directory: touchque-react
       - run: npm test
+        working-directory: touchque-react
       - run: npm run build
+        working-directory: touchque-react

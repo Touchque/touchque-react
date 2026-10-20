@@ -1,6 +1,6 @@
 {
   "name": "@touchque/react",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "React bindings for @touchque/web \u2014 passkey sign-in hook and button",
   "repository": {
     "type": "git",
@@ -47,7 +47,7 @@
     "hooks"
   ],
   "peerDependencies": {
-    "@touchque/web": "^1.0.0",
+    "@touchque/web": "^1.5.0",
     "react": ">=18"
   },
   "devDependencies": {

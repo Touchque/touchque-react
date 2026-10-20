@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. The
 format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.1] — 2026-10-20
+
+### Fixed
+- The `@touchque/web` peer dependency is now `^1.5.0`. 1.1.0 uses the approval controller, passkey autofill and
+  case codes from `@touchque/web` 1.5.0 but still accepted `^1.0.0`.
+
 ## [1.1.0] — 2026-10-20 — "Why?" case codes, drop-in approval dialog, passkey autofill
 
 ### Added
