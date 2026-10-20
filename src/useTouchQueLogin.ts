@@ -16,9 +16,14 @@ export interface UseTouchQueLogin {
   /**
    * The current step while pending — render it your way: `step.number`
    * (number matching: show it, the user picks it on the phone),
-   * `step.enroll.qrCodeDataUrl` (first-time link), `step.offline.qrDataUrl`.
+   * `step.enroll.qrCodeDataUrl` (first-time link), `step.offline.qrDataUrl` (+ `step.offline.challengeCode` to print under it).
    */
   step: Step | null;
+  /**
+   * "Why?": the case code of the current step or of the refusal (`K7P-2QX`),
+   * or null. Show it: "Tell your support team: K7P-2QX".
+   */
+  caseCode: string | null;
   /** Switch to offline approval / send the phone's code / stop waiting. */
   useOffline: () => void;
   submitCode: (code: string, type?: 'qr' | 'totp') => void;
@@ -80,8 +85,9 @@ export function useTouchQueLogin(config: TouchQueWebConfig): UseTouchQueLogin {
     setStep(null);
   }, []);
 
+  const caseCode = step?.caseCode || (error as { caseCode?: string } | null)?.caseCode || null;
   return {
-    status, error, result, step, login, reset,
+    status, error, result, step, caseCode, login, reset,
     useOffline: () => controls.current?.useOffline(),
     submitCode: (code, type) => controls.current?.submitCode(code, type),
     cancel: () => controls.current?.cancel(),

@@ -8,6 +8,7 @@ import {
   type TouchQueWebConfig,
   type AuthenticateResult,
   type RegisterResult,
+  type RegisterApprovalOptions,
   type PasskeySummary,
 } from '@touchque/web';
 
@@ -27,8 +28,12 @@ export interface UseTouchQuePasskey {
     email: string,
     context?: Record<string, unknown>,
   ) => Promise<AuthenticateResult>;
-  /** Register a passkey for the signed-in user. */
-  register: (extra?: Record<string, unknown>) => Promise<RegisterResult>;
+  /**
+   * Register a passkey for the signed-in user. A user with a linked phone
+   * approves it there first (number matched): pass `{ onStep }` and show
+   * `step.number` while it waits.
+   */
+  register: (extra?: Record<string, unknown>, approval?: RegisterApprovalOptions) => Promise<RegisterResult>;
   /** List the signed-in user's passkeys. */
   list: () => Promise<PasskeySummary[]>;
   /** Remove one of the signed-in user's passkeys. */
@@ -95,7 +100,7 @@ export function useTouchQuePasskey(config: TouchQueWebConfig): UseTouchQuePasske
   );
 
   const register = useCallback(
-    (extra?: Record<string, unknown>) => client.passkeys.register(extra),
+    (extra?: Record<string, unknown>, approval?: RegisterApprovalOptions) => client.passkeys.register(extra, approval),
     [client],
   );
   const list = useCallback(() => client.passkeys.list(), [client]);

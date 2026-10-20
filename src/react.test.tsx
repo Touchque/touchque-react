@@ -105,9 +105,18 @@ describe('useTouchQuePasskey', () => {
       await result.current.list();
       await result.current.remove('c1');
     });
-    expect(h.register).toHaveBeenCalledWith({ label: 'L' });
+    expect(h.register).toHaveBeenCalledWith({ label: 'L' }, undefined);
     expect(h.list).toHaveBeenCalled();
     expect(h.remove).toHaveBeenCalledWith('c1');
+  });
+
+  // PASSKEY_ENROLL is number matched: the phone step has to reach the page.
+  test('register passes the phone-approval options (onStep) through', async () => {
+    h.register.mockResolvedValue({ verified: true, credentialId: 'c' });
+    const onStep = vi.fn();
+    const { result } = renderHook(() => useTouchQuePasskey(CONFIG));
+    await act(async () => { await result.current.register({ label: 'L' }, { onStep, pollIntervalMs: 500 }); });
+    expect(h.register).toHaveBeenCalledWith({ label: 'L' }, { onStep, pollIntervalMs: 500 });
   });
 });
 

@@ -40,6 +40,46 @@ function TransferButton() {
 }
 ```
 
+## Drop-in approval dialog
+
+```tsx
+import { useTouchQueApproval, TouchQueApproval } from '@touchque/react';
+
+function SendMoney() {
+  const approval = useTouchQueApproval({ baseUrl: '/touchque', credentials: 'include' });
+  const send = async () => {
+    const res = await approval.fetch('/api/transfer', { method: 'POST', body: JSON.stringify({ amount: 250 }) });
+    if (res.ok) toast('Sent');
+  };
+  return (
+    <>
+      <button onClick={send}>Send</button>
+      <TouchQueApproval approval={approval} />
+    </>
+  );
+}
+```
+
+The dialog opens only when your server asks for an approval. It shows the number to pick on the phone, the
+first-time link QR, the offline QR and code, the passkey step and refusals with their case code; closing it
+rejects the call with an `AbortError`. `approval.login()` runs the push sign-in the same way. Props: `theme`
+(`light`, `dark`, `auto`), `className`, `style` (set the `--tq-approval-*` CSS variables there). Texts:
+`useTouchQueApproval(config, { texts })`. The hook also returns the state (`phase`, `number`, `offline`,
+`error`…) to render your own.
+
+## Passkey autofill and the passkey offer
+
+```tsx
+const autofill = usePasskeyAutofill({ baseUrl: '/touchque' }, { onResult: (r) => r.ok && goHome() });
+<input type="email" name="email" {...autofill.inputProps} />
+
+const offer = usePasskeyUpgrade({ baseUrl: '/touchque', credentials: 'include' }, user.email);
+{offer.status === 'offer' && <Banner onAdd={() => offer.upgrade()} onLater={offer.dismiss} />}
+```
+
+Autofill never opens a modal; without browser support nothing happens. The offer shows once per browser and
+user, after a password or email-link sign-in (see `@touchque/web`'s README).
+
 ## Login (enroll + push, number matching)
 
 ```tsx
@@ -88,3 +128,9 @@ directory before running `npm install`. See [CONTRIBUTING.md](./CONTRIBUTING.md)
 ## License
 
 MIT © [TouchQue](https://touchque.com)
+
+## "Why?": case codes
+
+`useTouchQueLogin().caseCode` is the case code of the current step or of the refusal (`K7P-2QX`), or `null`. Show it
+next to the step or the error, "Tell your support team: K7P-2QX"; your team opens the whole decision by it in the
+TouchQue dashboard. Needs `@touchque/web` 1.5.0 and a 4.0.0 server SDK.

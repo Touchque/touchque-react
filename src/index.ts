@@ -2,6 +2,7 @@
 //
 //   import { useTouchQuePasskey, PasskeyButton } from '@touchque/react';
 //   import { useTouchQueEnroll, TwoFactorEnroll, TwoFactorLoginButton } from '@touchque/react';
+//   import { useTouchQueApproval, TouchQueApproval } from '@touchque/react';
 
 export { useTouchQuePasskey } from './useTouchQuePasskey';
 export type { UseTouchQuePasskey, PasskeyStatus } from './useTouchQuePasskey';
@@ -21,6 +22,11 @@ export { useTouchQueAction } from './useTouchQueAction';
 export type { UseTouchQueAction, ActionStatus } from './useTouchQueAction';
 export type { TwoFactorLoginButtonProps } from './TwoFactorLoginButton';
 
+export { useTouchQueApproval, TouchQueApproval } from './TouchQueApproval';
+export type { UseTouchQueApproval, TouchQueApprovalProps } from './TouchQueApproval';
+export { usePasskeyAutofill, usePasskeyUpgrade } from './usePasskeyAutofill';
+export type { UsePasskeyAutofill, UsePasskeyAutofillOptions, UsePasskeyUpgrade, PasskeyUpgradeStatus } from './usePasskeyAutofill';
+
 // Re-export the error classes so consumers don't also need to import from
 // @touchque/web just to `instanceof`-check.
 export {
@@ -30,6 +36,7 @@ export {
   EnrollmentTimeoutError,
   EnrollmentCancelledError,
   PasskeyRequiredError,
+  PasskeyAlreadyRegisteredError,
   TouchQueWebAPIError,
 } from '@touchque/web';
-export type { Step, StepState, StepControls } from '@touchque/web';
+export type { Step, StepState, StepControls, ApprovalState, ApprovalTexts, ApprovalOptions } from '@touchque/web';
