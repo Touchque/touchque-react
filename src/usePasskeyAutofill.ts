@@ -9,6 +9,7 @@ import {
   type Step,
   type TouchQueWebConfig,
 } from '@touchque/web';
+import { useStableConfig } from './stableConfig';
 
 export interface UsePasskeyAutofillOptions {
   /** Called once the user picks a saved passkey from the field's autofill and it verified. */
@@ -45,11 +46,8 @@ export interface UsePasskeyAutofill {
  * works next to it: it takes over, and autofill starts again afterwards.
  */
 export function usePasskeyAutofill(config: TouchQueWebConfig, options: UsePasskeyAutofillOptions): UsePasskeyAutofill {
-  const client = useMemo(
-    () => createTouchQueWeb(config),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.baseUrl, config.credentials, JSON.stringify(config.paths ?? {})],
-  );
+  const stable = useStableConfig(config);
+  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
   const latest = useRef(options);
   latest.current = options;
   const enabled = options.enabled !== false;
@@ -113,11 +111,8 @@ export function usePasskeyUpgrade(
   user: string | null | undefined,
   options: { remindAfterDays?: number } = {},
 ): UsePasskeyUpgrade {
-  const client = useMemo(
-    () => createTouchQueWeb(config),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.baseUrl, config.credentials, JSON.stringify(config.paths ?? {})],
-  );
+  const stable = useStableConfig(config);
+  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
   const [status, setStatus] = useState<PasskeyUpgradeStatus>('checking');
   const [step, setStep] = useState<Step | null>(null);
   const [error, setError] = useState<Error | null>(null);

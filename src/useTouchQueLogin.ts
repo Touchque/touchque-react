@@ -6,6 +6,7 @@ import {
   type Step,
   type StepControls,
 } from '@touchque/web';
+import { useStableConfig } from './stableConfig';
 
 export type ClassicLoginStatus = 'idle' | 'pending' | 'success' | 'error';
 
@@ -35,11 +36,8 @@ export interface UseTouchQueLogin {
 
 /** React hook over `@touchque/web`'s `classic2fa.login()` (two-phase: number shown before approval). */
 export function useTouchQueLogin(config: TouchQueWebConfig): UseTouchQueLogin {
-  const client = useMemo(
-    () => createTouchQueWeb(config),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.baseUrl, config.credentials, JSON.stringify(config.paths ?? {})],
-  );
+  const stable = useStableConfig(config);
+  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
 
   const [status, setStatus] = useState<ClassicLoginStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
@@ -52,26 +50,34 @@ export function useTouchQueLogin(config: TouchQueWebConfig): UseTouchQueLogin {
   const login = useCallback(
     async (externalUsername?: string) => {
       if (abort.current) throw new Error('A login is already in progress.');
-      abort.current = new AbortController();
+      const ac = new AbortController();
+      abort.current = ac;
       setStatus('pending');
       setError(null);
       setStep(null);
       try {
         const res = await client.classic2fa.login({
           externalUsername,
-          signal: abort.current.signal,
-          onStep: (s, c) => { controls.current = c; setStep(s); },
+          signal: ac.signal,
+          onStep: (s, c) => { if (abort.current !== ac) return; controls.current = c; setStep(s); },
         });
-        setResult(res);
-        setStatus('success');
+        if (abort.current === ac) {
+          setResult(res);
+          setStatus('success');
+        }
         return res;
       } catch (e) {
-        setError(e as Error);
-        setStatus('error');
+        // A login that reset() ended must not overwrite the state after it.
+        if (abort.current === ac) {
+          setError(e as Error);
+          setStatus('error');
+        }
         throw e;
       } finally {
-        abort.current = null;
-        controls.current = null;
+        if (abort.current === ac) {
+          abort.current = null;
+          controls.current = null;
+        }
       }
     },
     [client],
@@ -79,6 +85,8 @@ export function useTouchQueLogin(config: TouchQueWebConfig): UseTouchQueLogin {
 
   const reset = useCallback(() => {
     abort.current?.abort();
+    abort.current = null;
+    controls.current = null;
     setStatus('idle');
     setError(null);
     setResult(null);

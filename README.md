@@ -7,7 +7,7 @@ passkey sign-in, so you don't hand-write the step-up polling loop yourself.
 [![npm version](https://img.shields.io/npm/v/@touchque/react.svg)](https://www.npmjs.com/package/@touchque/react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-📘 Full docs: **[authenticator.touchque.com/docs](https://authenticator.touchque.com/docs)**
+📘 Full docs: **[support.touchque.com](https://support.touchque.com)**
 
 ## Install
 
@@ -134,3 +134,7 @@ MIT © [TouchQue](https://touchque.com)
 `useTouchQueLogin().caseCode` is the case code of the current step or of the refusal (`K7P-2QX`), or `null`. Show it
 next to the step or the error, "Tell your support team: K7P-2QX"; your team opens the whole decision by it in the
 TouchQue dashboard. Needs `@touchque/web` 1.5.0 and a 4.0.0 server SDK.
+
+## TouchQue Login (hosted sign-in)
+
+Sign-up and sign-in pages for your own customers, on your brand, with OpenID Connect. See the [Touchque Login docs](https://support.touchque.com/touchque-login) for this SDK's client and a quickstart.

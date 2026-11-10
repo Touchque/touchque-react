@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useTouchQueLogin } from './useTouchQueLogin';
 import type { TouchQueWebConfig, ClassicLoginResult } from '@touchque/web';
 
@@ -33,6 +34,11 @@ export function TwoFactorLoginButton({
 }: TwoFactorLoginButtonProps) {
   const l = useTouchQueLogin(config);
   const busy = l.status === 'pending';
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
     onClick?.(e);
@@ -41,7 +47,8 @@ export function TwoFactorLoginButton({
       const res = await l.login(externalUsername);
       onSuccess?.(res);
     } catch (err) {
-      onError?.(err as Error);
+      // Unmounting aborts the login: that is not an error to report.
+      if (mounted.current) onError?.(err as Error);
     }
   };
 

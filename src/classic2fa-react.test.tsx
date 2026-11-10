@@ -9,6 +9,7 @@ const h = vi.hoisted(() => {
     status: vi.fn(),
     waitForLink: vi.fn(),
     login: vi.fn(),
+    fetch: vi.fn(),
     createTouchQueWeb: vi.fn(),
     EnrollmentTimeoutError,
     EnrollmentCancelledError,
@@ -19,6 +20,7 @@ const { EnrollmentTimeoutError, EnrollmentCancelledError } = h;
 vi.mock('@touchque/web', () => {
   h.createTouchQueWeb.mockImplementation(() => ({
     classic2fa: { enroll: h.enroll, status: h.status, waitForLink: h.waitForLink, login: h.login },
+    fetch: h.fetch,
   }));
   return {
     createTouchQueWeb: h.createTouchQueWeb,
@@ -31,6 +33,7 @@ import { useTouchQueEnroll } from './useTouchQueEnroll';
 import { TwoFactorEnroll } from './TwoFactorEnroll';
 import { useTouchQueLogin } from './useTouchQueLogin';
 import { TwoFactorLoginButton } from './TwoFactorLoginButton';
+import { useTouchQueAction } from './useTouchQueAction';
 
 const CONFIG = { baseUrl: 'https://api.example.com' };
 
@@ -178,3 +181,95 @@ describe('number matching in React', () => {
   });
 });
 
+// What touchqueFetch does when its signal aborts.
+function untilAborted(signal: AbortSignal) {
+  return new Promise<never>((_resolve, reject) => {
+    signal.addEventListener('abort', () => {
+      const e = new Error('TouchQue approval cancelled');
+      e.name = 'AbortError';
+      reject(e);
+    }, { once: true });
+  });
+}
+
+describe('cancelling and starting again', () => {
+  test('useTouchQueEnroll: cancel() while starting shows no QR and polls nothing', async () => {
+    let resolveStart!: (v: unknown) => void;
+    h.enroll.mockReturnValue(new Promise((resolve) => { resolveStart = resolve; }));
+    const { result } = renderHook(() => useTouchQueEnroll(CONFIG));
+    let enrollPromise!: Promise<void>;
+    act(() => { enrollPromise = result.current.enroll(); });
+    expect(result.current.status).toBe('starting');
+
+    act(() => result.current.cancel());
+    await act(async () => {
+      resolveStart({ secret: 'S1', qrCodeDataUrl: 'x' });
+      await enrollPromise;
+    });
+    expect(result.current.status).toBe('idle');
+    expect(result.current.qrCodeDataUrl).toBeNull();
+    expect(h.waitForLink).not.toHaveBeenCalled();
+  });
+
+  test('useTouchQueLogin: reset() during a login stays idle once the login aborts', async () => {
+    h.login.mockImplementation(({ signal }: { signal: AbortSignal }) => untilAborted(signal));
+    const { result } = renderHook(() => useTouchQueLogin(CONFIG));
+    let first!: Promise<unknown>;
+    act(() => { first = result.current.login('user@example.com'); });
+    expect(result.current.status).toBe('pending');
+
+    await act(async () => {
+      result.current.reset();
+      await first.catch(() => {});
+    });
+    expect(result.current.status).toBe('idle');
+    expect(result.current.error).toBeNull();
+  });
+
+  test('useTouchQueLogin: reset() then login() in the same tick starts the new login', async () => {
+    h.login.mockImplementation(({ signal }: { signal: AbortSignal }) => untilAborted(signal));
+    const { result } = renderHook(() => useTouchQueLogin(CONFIG));
+    let first!: Promise<unknown>;
+    act(() => { first = result.current.login('user@example.com'); });
+
+    let second!: Promise<unknown>;
+    await act(async () => {
+      result.current.reset();
+      second = result.current.login('user@example.com');
+      second.catch(() => {});
+      await first.catch(() => {});
+    });
+    expect(h.login).toHaveBeenCalledTimes(2);
+    expect(result.current.status).toBe('pending');
+    expect(result.current.error).toBeNull();
+  });
+
+  test('<TwoFactorLoginButton> does not call onError when unmounting ends the login', async () => {
+    h.login.mockImplementation(({ signal }: { signal: AbortSignal }) => untilAborted(signal));
+    const onError = vi.fn();
+    const { unmount } = render(<TwoFactorLoginButton config={CONFIG} onError={onError} />);
+    await act(async () => { screen.getByRole('button').click(); });
+    expect(h.login).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      unmount();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  test('useTouchQueAction: the run a second run() aborted does not turn the new one into an error', async () => {
+    h.fetch.mockImplementation((_input: unknown, _init: unknown, { signal }: { signal: AbortSignal }) => untilAborted(signal));
+    const { result } = renderHook(() => useTouchQueAction(CONFIG));
+    let first!: Promise<Response>;
+    act(() => { first = result.current.run('/api/send', { method: 'POST' }); });
+
+    await act(async () => {
+      result.current.run('/api/send', { method: 'POST' }).catch(() => {});
+      await first.catch(() => {});
+    });
+    expect(h.fetch).toHaveBeenCalledTimes(2);
+    expect(result.current.status).toBe('pending');
+    expect(result.current.error).toBeNull();
+  });
+});

@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   createApproval,
+  approvalAttribution,
   approvalTimeLeft,
   isPngDataUrl,
   formatOfflineCodeInput,
@@ -13,6 +14,7 @@ import {
   type ClassicLoginResult,
   type TouchQueWebConfig,
 } from '@touchque/web';
+import { useStableConfig } from './stableConfig';
 
 export interface UseTouchQueApproval extends ApprovalState {
   /** fetch() for a guarded route; the dialog shows while the user approves. Closing it rejects with an AbortError. */
@@ -42,15 +44,16 @@ export interface UseTouchQueApproval extends ApprovalState {
  * ```
  *
  * Or render the state yourself. `options` (texts, poll interval, telemetry)
- * are read once, when the config's baseUrl, credentials or paths change.
+ * are read once, when the config's baseUrl, credentials, paths, headers or
+ * browserKey change.
  */
 export function useTouchQueApproval(config: TouchQueWebConfig, options?: ApprovalOptions): UseTouchQueApproval {
   const optionsRef = useRef(options);
   optionsRef.current = options;
+  const stable = useStableConfig(config);
   const controller = useMemo(
-    () => createApproval(config, optionsRef.current),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.baseUrl, config.credentials, JSON.stringify(config.paths ?? {})],
+    () => createApproval(stable, optionsRef.current),
+    [stable],
   );
   const state = useSyncExternalStore(controller.subscribe, controller.getState, controller.getState);
   useEffect(() => () => controller.cancel(), [controller]);
@@ -264,7 +267,7 @@ export function TouchQueApproval({ approval: a, theme = 'light', className, styl
         aria-labelledby={titleId}
         onCancel={(e) => { e.preventDefault(); a.close(); }}
       >
-        {open && <div className="tq-card">{body}</div>}
+        {open && <div className="tq-card">{body}<p className="tq-secured">{approvalAttribution(t)}</p></div>}
       </dialog>
     </>
   );

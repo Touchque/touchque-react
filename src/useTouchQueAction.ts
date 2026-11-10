@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createTouchQueWeb, type TouchQueWebConfig, type Step, type StepControls } from '@touchque/web';
+import { useStableConfig } from './stableConfig';
 
 export type ActionStatus = 'idle' | 'pending' | 'done' | 'error';
 
@@ -30,11 +31,8 @@ export interface UseTouchQueAction {
  * `baseUrl` is where touchqueRouter is mounted (used for passkey approval).
  */
 export function useTouchQueAction(config: TouchQueWebConfig): UseTouchQueAction {
-  const client = useMemo(
-    () => createTouchQueWeb(config),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.baseUrl, config.credentials, JSON.stringify(config.paths ?? {})],
-  );
+  const stable = useStableConfig(config);
+  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
   const [status, setStatus] = useState<ActionStatus>('idle');
   const [step, setStep] = useState<Step | null>(null);
   const [error, setError] = useState<Error | null>(null);
@@ -52,17 +50,22 @@ export function useTouchQueAction(config: TouchQueWebConfig): UseTouchQueAction 
     try {
       const res = await client.fetch(input, init, {
         signal: ac.signal,
-        onStep: (s, c) => { controls.current = c; setStep(s); },
+        onStep: (s, c) => { if (abort.current !== ac) return; controls.current = c; setStep(s); },
       });
-      setStatus(res.ok ? 'done' : 'error');
+      if (abort.current === ac) setStatus(res.ok ? 'done' : 'error');
       return res;
     } catch (e) {
-      setError(e as Error);
-      setStatus('error');
+      // A run that a newer run() aborted must not overwrite the newer run's state.
+      if (abort.current === ac) {
+        setError(e as Error);
+        setStatus('error');
+      }
       throw e;
     } finally {
-      if (abort.current === ac) abort.current = null;
-      controls.current = null;
+      if (abort.current === ac) {
+        abort.current = null;
+        controls.current = null;
+      }
     }
   }, [client]);
 

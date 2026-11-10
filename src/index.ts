@@ -3,6 +3,7 @@
 //   import { useTouchQuePasskey, PasskeyButton } from '@touchque/react';
 //   import { useTouchQueEnroll, TwoFactorEnroll, TwoFactorLoginButton } from '@touchque/react';
 //   import { useTouchQueApproval, TouchQueApproval } from '@touchque/react';
+//   import { HostedLoginProvider, useHostedLogin, TouchQueLogin, UserProfile, useMyAccount } from '@touchque/react';
 
 export { useTouchQuePasskey } from './useTouchQuePasskey';
 export type { UseTouchQuePasskey, PasskeyStatus } from './useTouchQuePasskey';
@@ -26,6 +27,14 @@ export { useTouchQueApproval, TouchQueApproval } from './TouchQueApproval';
 export type { UseTouchQueApproval, TouchQueApprovalProps } from './TouchQueApproval';
 export { usePasskeyAutofill, usePasskeyUpgrade } from './usePasskeyAutofill';
 export type { UsePasskeyAutofill, UsePasskeyAutofillOptions, UsePasskeyUpgrade, PasskeyUpgradeStatus } from './usePasskeyAutofill';
+
+// TouchQue Login (hosted sign-in) for single-page apps
+export { HostedLoginProvider, useHostedLogin, RequireSignIn } from './HostedLogin';
+export type { UseHostedLogin, HostedLoginProviderProps } from './HostedLogin';
+export { UserProfile, useMyAccount } from './UserProfile';
+export { TouchQueLogin } from './TouchQueLogin';
+export type { TouchQueLoginProps, TouchQueLoginLabels } from './TouchQueLogin';
+export type { UserProfileProps, UserProfileSection, UserProfileLabels } from './UserProfile';
 
 // Re-export the error classes so consumers don't also need to import from
 // @touchque/web just to `instanceof`-check.

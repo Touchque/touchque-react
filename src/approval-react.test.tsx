@@ -38,6 +38,7 @@ describe('<TouchQueApproval>', () => {
     fireEvent.click(screen.getByText('Pay'));
     await screen.findByText('Check your phone');
     expect(screen.getByRole('img', { name: '2 9' })).toBeTruthy();
+    expect(screen.getByText('Secured by TouchQue')).toBeTruthy();
     await waitFor(() => expect(results).toHaveLength(1));
     expect((results[0] as Response).ok).toBe(true);
     await waitFor(() => expect(screen.queryByText('Check your phone')).toBeNull());

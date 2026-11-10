@@ -5,6 +5,7 @@ import {
   type TouchQueWebConfig,
   type LinkStatus,
 } from '@touchque/web';
+import { useStableConfig } from './stableConfig';
 
 export type EnrollStatus = 'idle' | 'starting' | 'waiting' | 'linked' | 'error';
 
@@ -45,11 +46,8 @@ export function useTouchQueEnroll(
   config: TouchQueWebConfig,
   options: { timeoutMs?: number; pollIntervalMs?: number } = {},
 ): UseTouchQueEnroll {
-  const client = useMemo(
-    () => createTouchQueWeb(config),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.baseUrl, config.credentials, JSON.stringify(config.paths ?? {})],
-  );
+  const stable = useStableConfig(config);
+  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
 
   const [status, setStatus] = useState<EnrollStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
@@ -76,6 +74,7 @@ export function useTouchQueEnroll(
     setLinkStatus(null);
     try {
       const started = await client.classic2fa.enroll();
+      if (controller.signal.aborted) return; // cancelled while starting: no QR, nothing to poll
       setQrCodeDataUrl(started.qrCodeDataUrl);
       setRecoveryCodes(Array.isArray(started.recoveryCodes) ? (started.recoveryCodes as string[]) : null);
       setStatus('waiting');

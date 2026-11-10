@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   createTouchQueWeb,
   isPasskeySupported,
@@ -11,11 +11,15 @@ import {
   type RegisterApprovalOptions,
   type PasskeySummary,
 } from '@touchque/web';
+import { useStableConfig } from './stableConfig';
 
 export type PasskeyStatus = 'idle' | 'pending' | 'success' | 'stepup' | 'pending2fa' | 'error';
 
 export interface UseTouchQuePasskey {
-  /** `true` if this browser exposes the WebAuthn API. */
+  /**
+   * `true` if this browser exposes the WebAuthn API. `false` while rendering
+   * on the server and hydrating; the hook renders again with the browser's answer.
+   */
   isSupported: boolean;
   /** Current state of the last `authenticate()` call. */
   status: PasskeyStatus;
@@ -51,6 +55,10 @@ function classify(res: AuthenticateResult): PasskeyStatus {
 
 export { PasskeyDismissedError, PasskeyNotRegisteredError, PasskeyDisabledError };
 
+// WebAuthn support never changes while the page is open: nothing to subscribe to.
+const noSubscribe = () => () => {};
+const notOnServer = () => false;
+
 /**
  * React hook over `@touchque/web`. Memoizes one client for the given config
  * and tracks the state of the passkey sign-in flow.
@@ -64,18 +72,17 @@ export { PasskeyDismissedError, PasskeyNotRegisteredError, PasskeyDisabledError 
  */
 export function useTouchQuePasskey(config: TouchQueWebConfig): UseTouchQuePasskey {
   // Re-create the client only when the meaningful config fields change.
-  const client = useMemo(
-    () => createTouchQueWeb(config),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.baseUrl, config.credentials, JSON.stringify(config.paths ?? {})],
-  );
+  const stable = useStableConfig(config);
+  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
 
   const [status, setStatus] = useState<PasskeyStatus>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [result, setResult] = useState<AuthenticateResult | null>(null);
   const inFlight = useRef(false);
 
-  const isSupported = useMemo(() => isPasskeySupported(), []);
+  // The server has no WebAuthn: hydrate with its `false`, then render the
+  // browser's answer (a server-rendered `disabled` is not patched by hydration).
+  const isSupported = useSyncExternalStore(noSubscribe, isPasskeySupported, notOnServer);
 
   const authenticate = useCallback(
     async (email: string, context?: Record<string, unknown>) => {

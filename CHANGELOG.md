@@ -3,6 +3,43 @@
 All notable changes to this project will be documented in this file. The
 format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+## [1.2.0] — 2026-11-10
+
+### Changed
+- Peer dependency `@touchque/web` `^1.6.0` (the TouchQue Login and My Account clients and "Secured by TouchQue" come from it).
+
+### Added
+- **`<TouchQueApproval>` ends with "Secured by TouchQue"**, like `<touchque-approval>`: a small line in the theme's muted colour; `texts.securedBy` translates it but must keep the name.
+- **`<TouchQueLogin>`:** the sign-in corner of a header: "Sign in" and "Create account" when signed out; the
+  person's name with a menu (account settings, sign out) when signed in. Unstyled, with `labels`.
+- `<UserProfile>` shows text-message codes (turn off here, set up on the account page).
+- **`<UserProfile>` and `useMyAccount()`.** The signed-in customer's own settings inside your app (profile,
+  passkeys, TouchQue app, email codes, linked accounts, devices, apps with access) on the My Account API;
+  unstyled, with `labels` for your own words and a "Confirm it is you" step-up that returns to the same page.
+  Needs `@touchque/web` with `MyAccountClient`.
+- **TouchQue Login for React apps.** `<HostedLoginProvider domain clientId redirectUri>` finishes the sign-in on the
+  callback page by itself and calls `onRedirectCallback(appState)`; `useHostedLogin()` gives `isLoading`,
+  `isAuthenticated`, `user`, `loginWithRedirect`, `signUpWithRedirect`, `logout` and `getAccessToken`;
+  `<RequireSignIn>` shows its children only to signed-in users. Needs `@touchque/web` with `HostedLoginClient`.
+
+### Fixed
+- `<PasskeyButton>` after server rendering (Next.js): it hydrated with the server's `disabled` and stayed disabled
+  for good, and `hideWhenUnsupported` caused a hydration error. `useTouchQuePasskey().isSupported` is now `false` on
+  the server and while hydrating, then the browser's answer.
+- The hooks build a new client when `headers` or `browserKey` change, so a CSRF token that arrives after the first
+  render reaches the relay; every relay call kept the first (empty) token and the relay answered 403. `fetch` is read
+  on each call, so an inline function is neither stuck at its first version nor rebuilds the client.
+- `useTouchQueEnroll` / `<TwoFactorEnroll>`: Cancel before the QR arrived showed the QR afterwards with nothing
+  polling, so scanning it never reached `linked`.
+- `useTouchQueLogin().reset()` during a login: the aborted login no longer turns the state into `error`, and `login()`
+  right after `reset()` starts instead of throwing "A login is already in progress." `<TwoFactorLoginButton>` no longer
+  calls `onError` with an `AbortError` after it unmounts.
+- `useTouchQueAction().run()` called again while one waits (a double click): the aborted first run no longer sets
+  `status: 'error'` while the second waits on the phone.
+- `<HostedLoginProvider>` renders on the server (Next.js); it threw `ReferenceError: window is not defined`.
+
 ## [1.1.1] — 2026-10-20
 
 ### Fixed

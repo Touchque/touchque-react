@@ -1,5 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, renderHook, act } from '@testing-library/react';
+// @ts-expect-error -- this package does not install @types/react-dom
+import { renderToString } from 'react-dom/server';
 
 const h = vi.hoisted(() => {
   class PasskeyDismissedError extends Error {}
@@ -169,5 +171,66 @@ describe('<PasskeyButton>', () => {
 
     await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
     expect(onError.mock.calls[0][0]).toBeInstanceOf(PasskeyDismissedError);
+  });
+});
+
+describe('<PasskeyButton> after server rendering', () => {
+  // The server has no WebAuthn; the browser that hydrates the page does.
+  function hydrate(element: React.ReactElement) {
+    h.isPasskeySupported.mockReturnValue(false);
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(element);
+    h.isPasskeySupported.mockReturnValue(true);
+    const onRecoverableError = vi.fn();
+    render(element, { container, hydrate: true, onRecoverableError });
+    return { container, onRecoverableError };
+  }
+
+  test('becomes clickable once hydrated in a browser with passkeys', () => {
+    const { container } = hydrate(<PasskeyButton config={CONFIG} email="u@x.com" />);
+    expect(container.querySelector('button')!.disabled).toBe(false);
+  });
+
+  test('hideWhenUnsupported hydrates without a mismatch, then shows the button', () => {
+    const { container, onRecoverableError } = hydrate(<PasskeyButton config={CONFIG} email="u@x.com" hideWhenUnsupported />);
+    expect(onRecoverableError).not.toHaveBeenCalled();
+    expect(container.querySelector('button')).not.toBeNull();
+  });
+});
+
+describe('client config', () => {
+  test('headers or browserKey that change after the first render rebuild the client', () => {
+    const { rerender } = renderHook(
+      ({ csrf, browserKey }) => useTouchQuePasskey({ baseUrl: '/tq', headers: { 'X-CSRF-Token': csrf }, browserKey }),
+      { initialProps: { csrf: '', browserKey: false } },
+    );
+    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(1);
+
+    rerender({ csrf: 'tok-1', browserKey: false });
+    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(2);
+    expect(h.createTouchQueWeb.mock.lastCall![0].headers).toEqual({ 'X-CSRF-Token': 'tok-1' });
+
+    // Same values in a new object: the client stays.
+    rerender({ csrf: 'tok-1', browserKey: false });
+    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(2);
+
+    rerender({ csrf: 'tok-1', browserKey: true });
+    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(3);
+    expect(h.createTouchQueWeb.mock.lastCall![0].browserKey).toBe(true);
+  });
+
+  test('an inline fetch does not rebuild the client, and the latest one is called', async () => {
+    const first = vi.fn(async () => new Response('1'));
+    const second = vi.fn(async () => new Response('2'));
+    const { rerender } = renderHook(
+      ({ f }) => useTouchQuePasskey({ baseUrl: '/tq', fetch: (input, init) => f(input, init) }),
+      { initialProps: { f: first as typeof fetch } },
+    );
+    rerender({ f: second as typeof fetch });
+    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(1);
+
+    await h.createTouchQueWeb.mock.calls[0][0].fetch('/tq/passkey/options');
+    expect(second).toHaveBeenCalledWith('/tq/passkey/options', undefined);
+    expect(first).not.toHaveBeenCalled();
   });
 });
