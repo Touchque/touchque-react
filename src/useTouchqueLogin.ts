@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createTouchQueWeb,
-  type TouchQueWebConfig,
+  createTouchqueWeb,
+  type TouchqueWebConfig,
   type ClassicLoginResult,
   type Step,
   type StepControls,
@@ -10,7 +10,7 @@ import { useStableConfig } from './stableConfig';
 
 export type ClassicLoginStatus = 'idle' | 'pending' | 'success' | 'error';
 
-export interface UseTouchQueLogin {
+export interface UseTouchqueLogin {
   status: ClassicLoginStatus;
   error: Error | null;
   result: ClassicLoginResult | null;
@@ -35,9 +35,9 @@ export interface UseTouchQueLogin {
 }
 
 /** React hook over `@touchque/web`'s `classic2fa.login()` (two-phase: number shown before approval). */
-export function useTouchQueLogin(config: TouchQueWebConfig): UseTouchQueLogin {
+export function useTouchqueLogin(config: TouchqueWebConfig): UseTouchqueLogin {
   const stable = useStableConfig(config);
-  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
+  const client = useMemo(() => createTouchqueWeb(stable), [stable]);
 
   const [status, setStatus] = useState<ClassicLoginStatus>('idle');
   const [error, setError] = useState<Error | null>(null);

@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
-  createTouchQueWeb,
+  createTouchqueWeb,
   isPasskeySupported,
   PasskeyDismissedError,
   PasskeyNotRegisteredError,
   PasskeyDisabledError,
-  type TouchQueWebConfig,
+  type TouchqueWebConfig,
   type AuthenticateResult,
   type RegisterResult,
   type RegisterApprovalOptions,
@@ -15,7 +15,7 @@ import { useStableConfig } from './stableConfig';
 
 export type PasskeyStatus = 'idle' | 'pending' | 'success' | 'stepup' | 'pending2fa' | 'error';
 
-export interface UseTouchQuePasskey {
+export interface UseTouchquePasskey {
   /**
    * `true` if this browser exposes the WebAuthn API. `false` while rendering
    * on the server and hydrating; the hook renders again with the browser's answer.
@@ -64,16 +64,16 @@ const notOnServer = () => false;
  * and tracks the state of the passkey sign-in flow.
  *
  * ```tsx
- * const pk = useTouchQuePasskey({ baseUrl: 'https://api.example.com' });
+ * const pk = useTouchquePasskey({ baseUrl: 'https://api.example.com' });
  * <button disabled={!pk.isSupported} onClick={() => pk.authenticate(email)}>
  *   Sign in with a passkey
  * </button>
  * ```
  */
-export function useTouchQuePasskey(config: TouchQueWebConfig): UseTouchQuePasskey {
+export function useTouchquePasskey(config: TouchqueWebConfig): UseTouchquePasskey {
   // Re-create the client only when the meaningful config fields change.
   const stable = useStableConfig(config);
-  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
+  const client = useMemo(() => createTouchqueWeb(stable), [stable]);
 
   const [status, setStatus] = useState<PasskeyStatus>('idle');
   const [error, setError] = useState<Error | null>(null);

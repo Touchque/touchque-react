@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import type { TouchQueWebConfig } from '@touchque/web';
+import type { TouchqueWebConfig } from '@touchque/web';
 
 /**
  * The config the hooks build their `@touchque/web` client from. It is a new
@@ -9,7 +9,7 @@ import type { TouchQueWebConfig } from '@touchque/web';
  * relay. `fetch` is read on every call instead: an inline function must not
  * rebuild the client, restart passkey autofill or cancel a running approval.
  */
-export function useStableConfig(config: TouchQueWebConfig): TouchQueWebConfig {
+export function useStableConfig(config: TouchqueWebConfig): TouchqueWebConfig {
   const fetchRef = useRef(config.fetch);
   fetchRef.current = config.fetch;
   const hasFetch = Boolean(config.fetch);

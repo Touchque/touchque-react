@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { useTouchQueLogin } from './useTouchQueLogin';
-import type { TouchQueWebConfig, ClassicLoginResult } from '@touchque/web';
+import { useTouchqueLogin } from './useTouchqueLogin';
+import type { TouchqueWebConfig, ClassicLoginResult } from '@touchque/web';
 
 export interface TwoFactorLoginButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onError' | 'children'> {
   /** `@touchque/web` config (`baseUrl`, `paths?`, `credentials?`, …). */
-  config: TouchQueWebConfig;
+  config: TouchqueWebConfig;
   /** The account to send the push to (ignored when your server binds login to the password step). */
   externalUsername?: string;
   /** Called once the user approves on their device. */
@@ -20,7 +20,7 @@ export interface TwoFactorLoginButtonProps
  * response — the `<PasskeyButton>` equivalent for partners not using
  * WebAuthn. While pending the button is `disabled`, `data-loading` is set,
  * and when number matching is on it shows the number to pick on the phone
- * (BEFORE approval). Need your own layout? Use `useTouchQueLogin`.
+ * (BEFORE approval). Need your own layout? Use `useTouchqueLogin`.
  */
 export function TwoFactorLoginButton({
   config,
@@ -32,7 +32,7 @@ export function TwoFactorLoginButton({
   onClick,
   ...buttonProps
 }: TwoFactorLoginButtonProps) {
-  const l = useTouchQueLogin(config);
+  const l = useTouchqueLogin(config);
   const busy = l.status === 'pending';
   const mounted = useRef(false);
   useEffect(() => {

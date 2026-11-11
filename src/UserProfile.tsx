@@ -1,5 +1,5 @@
 // The signed-in customer's own account settings inside your app, on the
-// TouchQue Login My Account API (/me/v1).
+// Touchque Login My Account API (/me/v1).
 //
 //   <HostedLoginProvider …>
 //     <UserProfile />                                   // profile, sign-in, devices, apps
@@ -41,7 +41,7 @@ const DEFAULT_LABELS = {
   noPasskeys: 'No passkeys yet.',
   addPasskey: 'Add a passkey',
   remove: 'Remove',
-  touchqueApp: 'TouchQue app',
+  touchqueApp: 'Touchque app',
   linked: 'Linked',
   notLinked: 'Not linked',
   unlink: 'Unlink',
@@ -169,7 +169,7 @@ export function UserProfile({ sections = ['profile', 'security', 'devices', 'app
         {(methods.touchqueApp.offered || methods.touchqueApp.linked) && (
           <p data-touchque-account="touchque-app">
             {L.touchqueApp}: {methods.touchqueApp.linked ? L.linked : L.notLinked}
-            {methods.touchqueApp.linked && <button type="button" disabled={busy} onClick={() => run('touchque', () => account.unlinkTouchQueApp())}>{L.unlink}</button>}
+            {methods.touchqueApp.linked && <button type="button" disabled={busy} onClick={() => run('touchque', () => account.unlinkTouchqueApp())}>{L.unlink}</button>}
           </p>
         )}
         {methods.emailCodes.offered && methods.emailCodes.available && (

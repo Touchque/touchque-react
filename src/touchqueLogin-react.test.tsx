@@ -1,6 +1,6 @@
 import { describe, test, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { HostedLoginProvider, TouchQueLogin } from './index';
+import { HostedLoginProvider, TouchqueLogin } from './index';
 
 function fakeClient(user: Record<string, unknown> | null) {
   return {
@@ -15,10 +15,10 @@ function fakeClient(user: Record<string, unknown> | null) {
 }
 
 const mount = (client: ReturnType<typeof fakeClient>, props = {}) => render(
-  <HostedLoginProvider domain="d" clientId="c" redirectUri="https://app/cb" client={client as never}><TouchQueLogin {...props} /></HostedLoginProvider>,
+  <HostedLoginProvider domain="d" clientId="c" redirectUri="https://app/cb" client={client as never}><TouchqueLogin {...props} /></HostedLoginProvider>,
 );
 
-describe('<TouchQueLogin>', () => {
+describe('<TouchqueLogin>', () => {
   test('signed out: sign in and create account', () => {
     window.history.pushState({}, '', '/pricing');
     const client = fakeClient(null);

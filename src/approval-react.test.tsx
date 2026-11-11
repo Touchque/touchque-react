@@ -1,6 +1,6 @@
 import { describe, test, expect, vi } from 'vitest';
 import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
-import { useTouchQueApproval, TouchQueApproval } from './index';
+import { useTouchqueApproval, TouchqueApproval } from './index';
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
@@ -17,16 +17,16 @@ function relay(script: Response[]) {
 }
 
 function Pay({ fetch, onResult }: { fetch: typeof globalThis.fetch; onResult: (r: Response | Error) => void }) {
-  const approval = useTouchQueApproval({ baseUrl: '/tq', fetch }, { pollIntervalMs: 1, approvedMs: 5 });
+  const approval = useTouchqueApproval({ baseUrl: '/tq', fetch }, { pollIntervalMs: 1, approvedMs: 5 });
   return (
     <>
       <button onClick={() => approval.fetch('/api/pay', { method: 'POST' }).then(onResult, onResult)}>Pay</button>
-      <TouchQueApproval approval={approval} />
+      <TouchqueApproval approval={approval} />
     </>
   );
 }
 
-describe('<TouchQueApproval>', () => {
+describe('<TouchqueApproval>', () => {
   test('shows the number while the phone approves, then closes', async () => {
     const r = relay([
       json({ touchque: { state: 'waiting', requestId: 'r1', number: '29' }, token: 't1' }, 202),
@@ -38,7 +38,7 @@ describe('<TouchQueApproval>', () => {
     fireEvent.click(screen.getByText('Pay'));
     await screen.findByText('Check your phone');
     expect(screen.getByRole('img', { name: '2 9' })).toBeTruthy();
-    expect(screen.getByText('Secured by TouchQue')).toBeTruthy();
+    expect(screen.getByText('Secured by Touchque')).toBeTruthy();
     await waitFor(() => expect(results).toHaveLength(1));
     expect((results[0] as Response).ok).toBe(true);
     await waitFor(() => expect(screen.queryByText('Check your phone')).toBeNull());
@@ -61,11 +61,11 @@ describe('<TouchQueApproval>', () => {
       json({ ok: true }),
     ]);
     function Slow() {
-      const approval = useTouchQueApproval({ baseUrl: '/tq', fetch: r.fetch }, { pollIntervalMs: 60_000 });
+      const approval = useTouchqueApproval({ baseUrl: '/tq', fetch: r.fetch }, { pollIntervalMs: 60_000 });
       return (
         <>
           <button onClick={() => { approval.fetch('/api/pay').catch(() => { }); }}>Pay</button>
-          <TouchQueApproval approval={approval} theme="dark" />
+          <TouchqueApproval approval={approval} theme="dark" />
         </>
       );
     }

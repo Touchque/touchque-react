@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createTouchQueWeb,
+  createTouchqueWeb,
   isPasskeyAutofillAvailable,
   shouldOfferPasskey,
   dismissPasskeyOffer,
   type AuthenticateResult,
   type RegisterResult,
   type Step,
-  type TouchQueWebConfig,
+  type TouchqueWebConfig,
 } from '@touchque/web';
 import { useStableConfig } from './stableConfig';
 
@@ -42,12 +42,12 @@ export interface UsePasskeyAutofill {
  * ```
  *
  * It never opens a modal; in a browser without passkey autofill nothing
- * happens. A "Sign in with a passkey" button (`useTouchQuePasskey`) still
+ * happens. A "Sign in with a passkey" button (`useTouchquePasskey`) still
  * works next to it: it takes over, and autofill starts again afterwards.
  */
-export function usePasskeyAutofill(config: TouchQueWebConfig, options: UsePasskeyAutofillOptions): UsePasskeyAutofill {
+export function usePasskeyAutofill(config: TouchqueWebConfig, options: UsePasskeyAutofillOptions): UsePasskeyAutofill {
   const stable = useStableConfig(config);
-  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
+  const client = useMemo(() => createTouchqueWeb(stable), [stable]);
   const latest = useRef(options);
   latest.current = options;
   const enabled = options.enabled !== false;
@@ -107,12 +107,12 @@ export interface UsePasskeyUpgrade {
  * ```
  */
 export function usePasskeyUpgrade(
-  config: TouchQueWebConfig,
+  config: TouchqueWebConfig,
   user: string | null | undefined,
   options: { remindAfterDays?: number } = {},
 ): UsePasskeyUpgrade {
   const stable = useStableConfig(config);
-  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
+  const client = useMemo(() => createTouchqueWeb(stable), [stable]);
   const [status, setStatus] = useState<PasskeyUpgradeStatus>('checking');
   const [step, setStep] = useState<Step | null>(null);
   const [error, setError] = useState<Error | null>(null);

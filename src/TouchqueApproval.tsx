@@ -12,11 +12,11 @@ import {
   type ApprovalState,
   type ApprovalTexts,
   type ClassicLoginResult,
-  type TouchQueWebConfig,
+  type TouchqueWebConfig,
 } from '@touchque/web';
 import { useStableConfig } from './stableConfig';
 
-export interface UseTouchQueApproval extends ApprovalState {
+export interface UseTouchqueApproval extends ApprovalState {
   /** fetch() for a guarded route; the dialog shows while the user approves. Closing it rejects with an AbortError. */
   fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   /** Classic push sign-in through your relay (`classic2fa.login`), in the dialog. */
@@ -35,19 +35,19 @@ export interface UseTouchQueApproval extends ApprovalState {
 }
 
 /**
- * The drop-in approval dialog's state. Pair it with `<TouchQueApproval>`:
+ * The drop-in approval dialog's state. Pair it with `<TouchqueApproval>`:
  *
  * ```tsx
- * const approval = useTouchQueApproval({ baseUrl: '/touchque', credentials: 'include' });
+ * const approval = useTouchqueApproval({ baseUrl: '/touchque', credentials: 'include' });
  * <button onClick={() => approval.fetch('/api/transfer', { method: 'POST', body })}>Send</button>
- * <TouchQueApproval approval={approval} />
+ * <TouchqueApproval approval={approval} />
  * ```
  *
  * Or render the state yourself. `options` (texts, poll interval, telemetry)
  * are read once, when the config's baseUrl, credentials, paths, headers or
  * browserKey change.
  */
-export function useTouchQueApproval(config: TouchQueWebConfig, options?: ApprovalOptions): UseTouchQueApproval {
+export function useTouchqueApproval(config: TouchqueWebConfig, options?: ApprovalOptions): UseTouchqueApproval {
   const optionsRef = useRef(options);
   optionsRef.current = options;
   const stable = useStableConfig(config);
@@ -73,9 +73,9 @@ export function useTouchQueApproval(config: TouchQueWebConfig, options?: Approva
   };
 }
 
-export interface TouchQueApprovalProps {
-  /** From `useTouchQueApproval()`. */
-  approval: UseTouchQueApproval;
+export interface TouchqueApprovalProps {
+  /** From `useTouchqueApproval()`. */
+  approval: UseTouchqueApproval;
   /** `light` (default), `dark`, or `auto` (follows the system). */
   theme?: 'light' | 'dark' | 'auto';
   /** Extra class on the <dialog> (set the `--tq-approval-*` variables there). */
@@ -117,7 +117,7 @@ function useNow(active: boolean): number {
  * first-time link QR, the offline QR and code, the passkey step, and refusals
  * with their case code. Same look and texts as `<touchque-approval>`.
  */
-export function TouchQueApproval({ approval: a, theme = 'light', className, style }: TouchQueApprovalProps) {
+export function TouchqueApproval({ approval: a, theme = 'light', className, style }: TouchqueApprovalProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const t = a.texts;

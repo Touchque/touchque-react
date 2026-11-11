@@ -10,7 +10,7 @@ const h = vi.hoisted(() => {
     waitForLink: vi.fn(),
     login: vi.fn(),
     fetch: vi.fn(),
-    createTouchQueWeb: vi.fn(),
+    createTouchqueWeb: vi.fn(),
     EnrollmentTimeoutError,
     EnrollmentCancelledError,
   };
@@ -18,22 +18,22 @@ const h = vi.hoisted(() => {
 const { EnrollmentTimeoutError, EnrollmentCancelledError } = h;
 
 vi.mock('@touchque/web', () => {
-  h.createTouchQueWeb.mockImplementation(() => ({
+  h.createTouchqueWeb.mockImplementation(() => ({
     classic2fa: { enroll: h.enroll, status: h.status, waitForLink: h.waitForLink, login: h.login },
     fetch: h.fetch,
   }));
   return {
-    createTouchQueWeb: h.createTouchQueWeb,
+    createTouchqueWeb: h.createTouchqueWeb,
     EnrollmentTimeoutError: h.EnrollmentTimeoutError,
     EnrollmentCancelledError: h.EnrollmentCancelledError,
   };
 });
 
-import { useTouchQueEnroll } from './useTouchQueEnroll';
+import { useTouchqueEnroll } from './useTouchqueEnroll';
 import { TwoFactorEnroll } from './TwoFactorEnroll';
-import { useTouchQueLogin } from './useTouchQueLogin';
+import { useTouchqueLogin } from './useTouchqueLogin';
 import { TwoFactorLoginButton } from './TwoFactorLoginButton';
-import { useTouchQueAction } from './useTouchQueAction';
+import { useTouchqueAction } from './useTouchqueAction';
 
 const CONFIG = { baseUrl: 'https://api.example.com' };
 
@@ -41,12 +41,12 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('useTouchQueEnroll', () => {
+describe('useTouchqueEnroll', () => {
   test('enroll() walks starting -> waiting -> linked', async () => {
     h.enroll.mockResolvedValue({ secret: 'S1', qrCodeDataUrl: 'data:image/png;base64,x' });
     h.waitForLink.mockResolvedValue({ linked: true, used: true, deviceId: 'dev_1' });
 
-    const { result } = renderHook(() => useTouchQueEnroll(CONFIG));
+    const { result } = renderHook(() => useTouchqueEnroll(CONFIG));
     expect(result.current.status).toBe('idle');
 
     await act(async () => {
@@ -62,7 +62,7 @@ describe('useTouchQueEnroll', () => {
     h.enroll.mockResolvedValue({ secret: 'S1', qrCodeDataUrl: 'x' });
     h.waitForLink.mockRejectedValue(new EnrollmentTimeoutError('timed out'));
 
-    const { result } = renderHook(() => useTouchQueEnroll(CONFIG));
+    const { result } = renderHook(() => useTouchqueEnroll(CONFIG));
     await act(async () => {
       await result.current.enroll();
     });
@@ -76,7 +76,7 @@ describe('useTouchQueEnroll', () => {
     let rejectWaitForLink: (e: unknown) => void;
     h.waitForLink.mockReturnValue(new Promise((_resolve, reject) => { rejectWaitForLink = reject; }));
 
-    const { result } = renderHook(() => useTouchQueEnroll(CONFIG));
+    const { result } = renderHook(() => useTouchqueEnroll(CONFIG));
     let enrollPromise: Promise<void>;
     act(() => {
       enrollPromise = result.current.enroll();
@@ -123,10 +123,10 @@ describe('<TwoFactorEnroll>', () => {
   });
 });
 
-describe('useTouchQueLogin / <TwoFactorLoginButton>', () => {
+describe('useTouchqueLogin / <TwoFactorLoginButton>', () => {
   test('login() resolves and reports success', async () => {
     h.login.mockResolvedValue({ status: 'success', requestId: 'req_1', challengeCode: '42' });
-    const { result } = renderHook(() => useTouchQueLogin(CONFIG));
+    const { result } = renderHook(() => useTouchqueLogin(CONFIG));
 
     await act(async () => {
       await result.current.login('user@example.com');
@@ -185,7 +185,7 @@ describe('number matching in React', () => {
 function untilAborted(signal: AbortSignal) {
   return new Promise<never>((_resolve, reject) => {
     signal.addEventListener('abort', () => {
-      const e = new Error('TouchQue approval cancelled');
+      const e = new Error('Touchque approval cancelled');
       e.name = 'AbortError';
       reject(e);
     }, { once: true });
@@ -193,10 +193,10 @@ function untilAborted(signal: AbortSignal) {
 }
 
 describe('cancelling and starting again', () => {
-  test('useTouchQueEnroll: cancel() while starting shows no QR and polls nothing', async () => {
+  test('useTouchqueEnroll: cancel() while starting shows no QR and polls nothing', async () => {
     let resolveStart!: (v: unknown) => void;
     h.enroll.mockReturnValue(new Promise((resolve) => { resolveStart = resolve; }));
-    const { result } = renderHook(() => useTouchQueEnroll(CONFIG));
+    const { result } = renderHook(() => useTouchqueEnroll(CONFIG));
     let enrollPromise!: Promise<void>;
     act(() => { enrollPromise = result.current.enroll(); });
     expect(result.current.status).toBe('starting');
@@ -211,9 +211,9 @@ describe('cancelling and starting again', () => {
     expect(h.waitForLink).not.toHaveBeenCalled();
   });
 
-  test('useTouchQueLogin: reset() during a login stays idle once the login aborts', async () => {
+  test('useTouchqueLogin: reset() during a login stays idle once the login aborts', async () => {
     h.login.mockImplementation(({ signal }: { signal: AbortSignal }) => untilAborted(signal));
-    const { result } = renderHook(() => useTouchQueLogin(CONFIG));
+    const { result } = renderHook(() => useTouchqueLogin(CONFIG));
     let first!: Promise<unknown>;
     act(() => { first = result.current.login('user@example.com'); });
     expect(result.current.status).toBe('pending');
@@ -226,9 +226,9 @@ describe('cancelling and starting again', () => {
     expect(result.current.error).toBeNull();
   });
 
-  test('useTouchQueLogin: reset() then login() in the same tick starts the new login', async () => {
+  test('useTouchqueLogin: reset() then login() in the same tick starts the new login', async () => {
     h.login.mockImplementation(({ signal }: { signal: AbortSignal }) => untilAborted(signal));
-    const { result } = renderHook(() => useTouchQueLogin(CONFIG));
+    const { result } = renderHook(() => useTouchqueLogin(CONFIG));
     let first!: Promise<unknown>;
     act(() => { first = result.current.login('user@example.com'); });
 
@@ -258,9 +258,9 @@ describe('cancelling and starting again', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  test('useTouchQueAction: the run a second run() aborted does not turn the new one into an error', async () => {
+  test('useTouchqueAction: the run a second run() aborted does not turn the new one into an error', async () => {
     h.fetch.mockImplementation((_input: unknown, _init: unknown, { signal }: { signal: AbortSignal }) => untilAborted(signal));
-    const { result } = renderHook(() => useTouchQueAction(CONFIG));
+    const { result } = renderHook(() => useTouchqueAction(CONFIG));
     let first!: Promise<Response>;
     act(() => { first = result.current.run('/api/send', { method: 'POST' }); });
 

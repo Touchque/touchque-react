@@ -13,7 +13,7 @@ const h = vi.hoisted(() => {
     list: vi.fn(),
     remove: vi.fn(),
     isPasskeySupported: vi.fn(() => true),
-    createTouchQueWeb: vi.fn(),
+    createTouchqueWeb: vi.fn(),
     PasskeyDismissedError,
     PasskeyNotRegisteredError,
     PasskeyDisabledError,
@@ -22,11 +22,11 @@ const h = vi.hoisted(() => {
 const { PasskeyDismissedError, PasskeyNotRegisteredError, PasskeyDisabledError } = h;
 
 vi.mock('@touchque/web', () => {
-  h.createTouchQueWeb.mockImplementation(() => ({
+  h.createTouchqueWeb.mockImplementation(() => ({
     passkeys: { authenticate: h.authenticate, register: h.register, list: h.list, remove: h.remove },
   }));
   return {
-    createTouchQueWeb: h.createTouchQueWeb,
+    createTouchqueWeb: h.createTouchqueWeb,
     isPasskeySupported: h.isPasskeySupported,
     PasskeyDismissedError: h.PasskeyDismissedError,
     PasskeyNotRegisteredError: h.PasskeyNotRegisteredError,
@@ -34,7 +34,7 @@ vi.mock('@touchque/web', () => {
   };
 });
 
-import { useTouchQuePasskey } from './useTouchQuePasskey';
+import { useTouchquePasskey } from './useTouchquePasskey';
 import { PasskeyButton } from './PasskeyButton';
 
 const CONFIG = { baseUrl: 'https://api.example.com' };
@@ -44,9 +44,9 @@ beforeEach(() => {
   h.isPasskeySupported.mockReturnValue(true);
 });
 
-describe('useTouchQuePasskey', () => {
+describe('useTouchquePasskey', () => {
   test('starts idle and reports isSupported', () => {
-    const { result } = renderHook(() => useTouchQuePasskey(CONFIG));
+    const { result } = renderHook(() => useTouchquePasskey(CONFIG));
     expect(result.current.status).toBe('idle');
     expect(result.current.isSupported).toBe(true);
     expect(result.current.error).toBeNull();
@@ -55,7 +55,7 @@ describe('useTouchQuePasskey', () => {
   test('authenticate() drives status idle -> pending -> success', async () => {
     let resolveAuth: (v: unknown) => void = () => {};
     h.authenticate.mockReturnValue(new Promise((r) => { resolveAuth = r; }));
-    const { result } = renderHook(() => useTouchQuePasskey(CONFIG));
+    const { result } = renderHook(() => useTouchquePasskey(CONFIG));
 
     let p: Promise<unknown>;
     act(() => { p = result.current.authenticate('u@x.com'); });
@@ -71,14 +71,14 @@ describe('useTouchQuePasskey', () => {
 
   test('authenticate() classifies requiresStepUp as "stepup"', async () => {
     h.authenticate.mockResolvedValue({ ok: false, requiresStepUp: true, pending2fa: false, raw: {} });
-    const { result } = renderHook(() => useTouchQuePasskey(CONFIG));
+    const { result } = renderHook(() => useTouchquePasskey(CONFIG));
     await act(async () => { await result.current.authenticate('u@x.com'); });
     expect(result.current.status).toBe('stepup');
   });
 
   test('authenticate() sets status "error" and stores the error on rejection', async () => {
     h.authenticate.mockRejectedValue(new PasskeyNotRegisteredError('none'));
-    const { result } = renderHook(() => useTouchQuePasskey(CONFIG));
+    const { result } = renderHook(() => useTouchquePasskey(CONFIG));
     await act(async () => {
       await expect(result.current.authenticate('u@x.com')).rejects.toBeInstanceOf(PasskeyNotRegisteredError);
     });
@@ -88,7 +88,7 @@ describe('useTouchQuePasskey', () => {
 
   test('reset() returns to idle', async () => {
     h.authenticate.mockResolvedValue({ ok: true, requiresStepUp: false, pending2fa: false, raw: {} });
-    const { result } = renderHook(() => useTouchQuePasskey(CONFIG));
+    const { result } = renderHook(() => useTouchquePasskey(CONFIG));
     await act(async () => { await result.current.authenticate('u@x.com'); });
     expect(result.current.status).toBe('success');
     act(() => result.current.reset());
@@ -100,7 +100,7 @@ describe('useTouchQuePasskey', () => {
     h.register.mockResolvedValue({ verified: true, credentialId: 'c' });
     h.list.mockResolvedValue([{ id: 'c1' }]);
     h.remove.mockResolvedValue({ deleted: true });
-    const { result } = renderHook(() => useTouchQuePasskey(CONFIG));
+    const { result } = renderHook(() => useTouchquePasskey(CONFIG));
 
     await act(async () => {
       await result.current.register({ label: 'L' });
@@ -116,7 +116,7 @@ describe('useTouchQuePasskey', () => {
   test('register passes the phone-approval options (onStep) through', async () => {
     h.register.mockResolvedValue({ verified: true, credentialId: 'c' });
     const onStep = vi.fn();
-    const { result } = renderHook(() => useTouchQuePasskey(CONFIG));
+    const { result } = renderHook(() => useTouchquePasskey(CONFIG));
     await act(async () => { await result.current.register({ label: 'L' }, { onStep, pollIntervalMs: 500 }); });
     expect(h.register).toHaveBeenCalledWith({ label: 'L' }, { onStep, pollIntervalMs: 500 });
   });
@@ -201,35 +201,35 @@ describe('<PasskeyButton> after server rendering', () => {
 describe('client config', () => {
   test('headers or browserKey that change after the first render rebuild the client', () => {
     const { rerender } = renderHook(
-      ({ csrf, browserKey }) => useTouchQuePasskey({ baseUrl: '/tq', headers: { 'X-CSRF-Token': csrf }, browserKey }),
+      ({ csrf, browserKey }) => useTouchquePasskey({ baseUrl: '/tq', headers: { 'X-CSRF-Token': csrf }, browserKey }),
       { initialProps: { csrf: '', browserKey: false } },
     );
-    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(1);
+    expect(h.createTouchqueWeb).toHaveBeenCalledTimes(1);
 
     rerender({ csrf: 'tok-1', browserKey: false });
-    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(2);
-    expect(h.createTouchQueWeb.mock.lastCall![0].headers).toEqual({ 'X-CSRF-Token': 'tok-1' });
+    expect(h.createTouchqueWeb).toHaveBeenCalledTimes(2);
+    expect(h.createTouchqueWeb.mock.lastCall![0].headers).toEqual({ 'X-CSRF-Token': 'tok-1' });
 
     // Same values in a new object: the client stays.
     rerender({ csrf: 'tok-1', browserKey: false });
-    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(2);
+    expect(h.createTouchqueWeb).toHaveBeenCalledTimes(2);
 
     rerender({ csrf: 'tok-1', browserKey: true });
-    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(3);
-    expect(h.createTouchQueWeb.mock.lastCall![0].browserKey).toBe(true);
+    expect(h.createTouchqueWeb).toHaveBeenCalledTimes(3);
+    expect(h.createTouchqueWeb.mock.lastCall![0].browserKey).toBe(true);
   });
 
   test('an inline fetch does not rebuild the client, and the latest one is called', async () => {
     const first = vi.fn(async () => new Response('1'));
     const second = vi.fn(async () => new Response('2'));
     const { rerender } = renderHook(
-      ({ f }) => useTouchQuePasskey({ baseUrl: '/tq', fetch: (input, init) => f(input, init) }),
+      ({ f }) => useTouchquePasskey({ baseUrl: '/tq', fetch: (input, init) => f(input, init) }),
       { initialProps: { f: first as typeof fetch } },
     );
     rerender({ f: second as typeof fetch });
-    expect(h.createTouchQueWeb).toHaveBeenCalledTimes(1);
+    expect(h.createTouchqueWeb).toHaveBeenCalledTimes(1);
 
-    await h.createTouchQueWeb.mock.calls[0][0].fetch('/tq/passkey/options');
+    await h.createTouchqueWeb.mock.calls[0][0].fetch('/tq/passkey/options');
     expect(second).toHaveBeenCalledWith('/tq/passkey/options', undefined);
     expect(first).not.toHaveBeenCalled();
   });

@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createTouchQueWeb,
+  createTouchqueWeb,
   EnrollmentTimeoutError,
-  type TouchQueWebConfig,
+  type TouchqueWebConfig,
   type LinkStatus,
 } from '@touchque/web';
 import { useStableConfig } from './stableConfig';
 
 export type EnrollStatus = 'idle' | 'starting' | 'waiting' | 'linked' | 'error';
 
-export interface UseTouchQueEnroll {
+export interface UseTouchqueEnroll {
   status: EnrollStatus;
   error: Error | null;
   /** Ready-to-render QR code, set once `enroll()` starts. */
@@ -36,18 +36,18 @@ export { EnrollmentTimeoutError };
  * cleanup state machine every partner used to hand-roll themselves.
  *
  * ```tsx
- * const e = useTouchQueEnroll({ baseUrl: 'https://api.example.com' });
+ * const e = useTouchqueEnroll({ baseUrl: 'https://api.example.com' });
  * <button onClick={e.enroll}>Set up 2FA</button>
  * {e.status === 'waiting' && <img src={e.qrCodeDataUrl!} />}
  * {e.status === 'linked' && <p>Linked ✓</p>}
  * ```
  */
-export function useTouchQueEnroll(
-  config: TouchQueWebConfig,
+export function useTouchqueEnroll(
+  config: TouchqueWebConfig,
   options: { timeoutMs?: number; pollIntervalMs?: number } = {},
-): UseTouchQueEnroll {
+): UseTouchqueEnroll {
   const stable = useStableConfig(config);
-  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
+  const client = useMemo(() => createTouchqueWeb(stable), [stable]);
 
   const [status, setStatus] = useState<EnrollStatus>('idle');
   const [error, setError] = useState<Error | null>(null);

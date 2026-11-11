@@ -1,14 +1,14 @@
 {
   "name": "@touchque/react",
-  "version": "1.2.0",
-  "description": "React bindings for @touchque/web \u2014 passkey sign-in hook and button",
+  "version": "2.0.0",
+  "description": "React bindings for @touchque/web — passkey sign-in hook and button",
   "repository": {
     "type": "git",
     "url": "https://github.com/Touchque/touchque-react"
   },
   "homepage": "https://touchque.com",
   "license": "MIT",
-  "author": "TouchQue",
+  "author": "Touchque",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -47,7 +47,7 @@
     "hooks"
   ],
   "peerDependencies": {
-    "@touchque/web": "^1.6.0",
+    "@touchque/web": "^2.0.0",
     "react": ">=18"
   },
   "devDependencies": {

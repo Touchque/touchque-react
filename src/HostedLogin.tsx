@@ -1,4 +1,4 @@
-// TouchQue Login in a React single-page app.
+// Touchque Login in a React single-page app.
 //
 //   <HostedLoginProvider domain="acme.login.touchque.com" clientId="…" redirectUri={`${location.origin}/callback`}>
 //     <App />

@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createTouchQueWeb, type TouchQueWebConfig, type Step, type StepControls } from '@touchque/web';
+import { createTouchqueWeb, type TouchqueWebConfig, type Step, type StepControls } from '@touchque/web';
 import { useStableConfig } from './stableConfig';
 
 export type ActionStatus = 'idle' | 'pending' | 'done' | 'error';
 
-export interface UseTouchQueAction {
+export interface UseTouchqueAction {
   status: ActionStatus;
   /** The step to render while pending (number, enrollment QR, offline QR, refusal). */
   step: Step | null;
   error: Error | null;
   /**
-   * fetch() for a route protected with requireTouchQue. Resolves with your
+   * fetch() for a route protected with requireTouchque. Resolves with your
    * route's own Response once the user approved (or the final refusal).
    */
   run: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -23,16 +23,16 @@ export interface UseTouchQueAction {
  * Step-up for any protected action, rendered in YOUR components:
  *
  * ```tsx
- * const a = useTouchQueAction({ baseUrl: '/touchque', credentials: 'include' });
+ * const a = useTouchqueAction({ baseUrl: '/touchque', credentials: 'include' });
  * const pay = () => a.run('/api/transfer', { method: 'POST', body: JSON.stringify({ amount }) });
  * {a.step?.state === 'waiting' && <p>Approve on your phone {a.step.number && <b>{a.step.number}</b>}</p>}
- * {a.step?.state === 'enroll' && <img src={a.step.enroll!.qrCodeDataUrl} alt="Scan with TouchQue" />}
+ * {a.step?.state === 'enroll' && <img src={a.step.enroll!.qrCodeDataUrl} alt="Scan with Touchque" />}
  * ```
  * `baseUrl` is where touchqueRouter is mounted (used for passkey approval).
  */
-export function useTouchQueAction(config: TouchQueWebConfig): UseTouchQueAction {
+export function useTouchqueAction(config: TouchqueWebConfig): UseTouchqueAction {
   const stable = useStableConfig(config);
-  const client = useMemo(() => createTouchQueWeb(stable), [stable]);
+  const client = useMemo(() => createTouchqueWeb(stable), [stable]);
   const [status, setStatus] = useState<ActionStatus>('idle');
   const [step, setStep] = useState<Step | null>(null);
   const [error, setError] = useState<Error | null>(null);

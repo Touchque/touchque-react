@@ -1,9 +1,9 @@
-// <TouchQueLogin>: the sign-in corner of a header. Signed out it shows
+// <TouchqueLogin>: the sign-in corner of a header. Signed out it shows
 // "Sign in" and "Create account"; signed in, the person's name with a menu
 // (account settings on the hosted account page, sign out).
 //
 //   <HostedLoginProvider …>
-//     <header><Logo /><TouchQueLogin /></header>
+//     <header><Logo /><TouchqueLogin /></header>
 //   </HostedLoginProvider>
 //
 // Unstyled: every part has a data-touchque-login attribute and the root
@@ -20,11 +20,11 @@ const DEFAULT_LABELS = {
   menu: 'Account menu',
 };
 
-export type TouchQueLoginLabels = typeof DEFAULT_LABELS;
+export type TouchqueLoginLabels = typeof DEFAULT_LABELS;
 
-export interface TouchQueLoginProps {
+export interface TouchqueLoginProps {
   className?: string;
-  labels?: Partial<TouchQueLoginLabels>;
+  labels?: Partial<TouchqueLoginLabels>;
   /** Show "Create account" next to "Sign in". Default true. */
   showSignUp?: boolean;
   /** After signing out (a registered sign-out URL). */
@@ -38,7 +38,7 @@ function initials(name: string): string {
   return ((parts[0]?.[0] || '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
 
-export function TouchQueLogin({ className, labels, showSignUp = true, returnTo, appState }: TouchQueLoginProps) {
+export function TouchqueLogin({ className, labels, showSignUp = true, returnTo, appState }: TouchqueLoginProps) {
   const L = { ...DEFAULT_LABELS, ...labels };
   const { isLoading, isAuthenticated, user, loginWithRedirect, signUpWithRedirect, logout, client } = useHostedLogin();
   const [open, setOpen] = useState(false);

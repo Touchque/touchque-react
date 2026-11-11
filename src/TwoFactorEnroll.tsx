@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { useTouchQueEnroll } from './useTouchQueEnroll';
-import type { TouchQueWebConfig, LinkStatus } from '@touchque/web';
+import { useTouchqueEnroll } from './useTouchqueEnroll';
+import type { TouchqueWebConfig, LinkStatus } from '@touchque/web';
 
 export interface TwoFactorEnrollProps {
   /** `@touchque/web` config (`baseUrl`, `paths?`, `credentials?`, …). */
-  config: TouchQueWebConfig;
+  config: TouchqueWebConfig;
   /** How long to poll before giving up. Default: 120000 (2 minutes). */
   timeoutMs?: number;
   pollIntervalMs?: number;
@@ -39,7 +39,7 @@ export function TwoFactorEnroll({
   qrSize = 200,
   className,
 }: TwoFactorEnrollProps) {
-  const e = useTouchQueEnroll(config, { timeoutMs, pollIntervalMs });
+  const e = useTouchqueEnroll(config, { timeoutMs, pollIntervalMs });
 
   // Auto-start once, on mount only.
   const autoStarted = useRef(false);
@@ -73,9 +73,9 @@ export function TwoFactorEnroll({
     return (
       <div className={className} data-touchque-enroll-status={e.status}>
         {e.qrCodeDataUrl && (
-          <img src={e.qrCodeDataUrl} width={qrSize} height={qrSize} alt="Scan with the TouchQue app" />
+          <img src={e.qrCodeDataUrl} width={qrSize} height={qrSize} alt="Scan with the Touchque app" />
         )}
-        <p>Scan this QR code with your TouchQue app…</p>
+        <p>Scan this QR code with your Touchque app…</p>
         {e.recoveryCodes && e.recoveryCodes.length > 0 && (
           <div data-touchque-recovery-codes="">
             <p>Save these recovery codes. Each works once if you lose your phone:</p>

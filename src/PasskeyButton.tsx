@@ -1,10 +1,10 @@
-import { useTouchQuePasskey } from './useTouchQuePasskey';
-import type { TouchQueWebConfig, AuthenticateResult } from '@touchque/web';
+import { useTouchquePasskey } from './useTouchquePasskey';
+import type { TouchqueWebConfig, AuthenticateResult } from '@touchque/web';
 
 export interface PasskeyButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onError' | 'children'> {
   /** `@touchque/web` config (`baseUrl`, `paths?`, `credentials?`, …). */
-  config: TouchQueWebConfig;
+  config: TouchqueWebConfig;
   /** The account to sign in. */
   email: string;
   /** Called when the passkey assertion signed the user in. */
@@ -38,7 +38,7 @@ export function PasskeyButton({
   onClick,
   ...buttonProps
 }: PasskeyButtonProps) {
-  const pk = useTouchQuePasskey(config);
+  const pk = useTouchquePasskey(config);
 
   if (hideWhenUnsupported && !pk.isSupported) return null;
 
