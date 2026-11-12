@@ -11,7 +11,9 @@ export interface UseTouchqueAction {
   error: Error | null;
   /**
    * fetch() for a route protected with requireTouchque. Resolves with your
-   * route's own Response once the user approved (or the final refusal).
+   * route's own Response once the user approved, or with the final refusal
+   * (4xx), or with a final 202 step (`enroll` with reason `enrollment_off`: no
+   * phone linked). `status` is `'error'` for both of those.
    */
   run: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   useOffline: () => void;
@@ -26,10 +28,15 @@ export interface UseTouchqueAction {
  * const a = useTouchqueAction({ baseUrl: '/touchque', credentials: 'include' });
  * const pay = () => a.run('/api/transfer', { method: 'POST', body: JSON.stringify({ amount }) });
  * {a.step?.state === 'waiting' && <p>Approve on your phone {a.step.number && <b>{a.step.number}</b>}</p>}
- * {a.step?.state === 'enroll' && <img src={a.step.enroll!.qrCodeDataUrl} alt="Scan with Touchque" />}
+ * {a.step?.enroll && <img src={a.step.enroll.qrCodeDataUrl} alt="Scan with Touchque" />}
+ * {a.step?.reason === 'enrollment_off' && <p>No phone is linked to this account yet. Link the Touchque app first.</p>}
  * ```
  * `baseUrl` is where touchqueRouter is mounted (used for passkey approval).
  */
+/** A 202 whose JSON body is a Touchque step, not your route's own 202 Accepted. */
+const carriesStep = (res: Response): Promise<boolean> =>
+  res.clone().json().then((b) => typeof b?.touchque?.state === 'string', () => false);
+
 export function useTouchqueAction(config: TouchqueWebConfig): UseTouchqueAction {
   const stable = useStableConfig(config);
   const client = useMemo(() => createTouchqueWeb(stable), [stable]);
@@ -52,7 +59,9 @@ export function useTouchqueAction(config: TouchqueWebConfig): UseTouchqueAction 
         signal: ac.signal,
         onStep: (s, c) => { if (abort.current !== ac) return; controls.current = c; setStep(s); },
       });
-      if (abort.current === ac) setStatus(res.ok ? 'done' : 'error');
+      // A final 202 that carries a step (enrollment_off) ended the wait without your route's answer.
+      const failed = !res.ok || (res.status === 202 && await carriesStep(res));
+      if (abort.current === ac) setStatus(failed ? 'error' : 'done');
       return res;
     } catch (e) {
       // A run that a newer run() aborted must not overwrite the newer run's state.

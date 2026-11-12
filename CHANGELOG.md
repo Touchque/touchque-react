@@ -3,7 +3,11 @@
 All notable changes to this project will be documented in this file. The
 format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [2.1.0] — 2026-11-13
+
+### Fixed
+- **`useTouchqueAction` reports a final `enrollment_off` step as an error, not `'done'`.** Server SDKs 5.2 answer a user with no phone on a route that may not link one with 202 `{ touchque: { state: 'enroll', reason: 'enrollment_off' } }`, and `@touchque/web` 2.2 returns that 202 as final. `res.ok` is true for it, so `status` became `'done'`. Now a 202 whose body carries a Touchque step sets `status` to `'error'` (as a refusal does) and `step` shows it; `run()` still resolves with the response. A route's own 202 Accepted, with no `touchque` in its body, is still `'done'`. Needs `@touchque/web` 2.2.0, whose approval dialog (`useTouchqueApproval().fetch`, `<TouchqueApproval>`) rejects for it with a `TouchqueWebAPIError` (status 202) and shows the not-linked error.
+- README: the quick start shows the QR only when `step.enroll` is there (it crashed on an `enrollment_off` step) and the not-linked text for `step.reason === 'enrollment_off'`; it says to read `status` rather than `res.ok`. The dialog example catches the rejection (closed, or no phone linked).
 
 ## [2.0.0] — 2026-11-11
 

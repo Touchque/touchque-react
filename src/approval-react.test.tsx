@@ -1,6 +1,6 @@
 import { describe, test, expect, vi } from 'vitest';
-import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
-import { useTouchqueApproval, TouchqueApproval } from './index';
+import { render, screen, act, fireEvent, waitFor, renderHook } from '@testing-library/react';
+import { useTouchqueApproval, useTouchqueAction, TouchqueApproval } from './index';
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 const PNG = 'data:image/png;base64,iVBORw0KGgo=';
@@ -81,5 +81,67 @@ describe('<TouchqueApproval>', () => {
     await act(async () => { fireEvent.click(screen.getByText('Verify')); });
     await waitFor(() => expect(r.headers[2]?.get('x-touchque-code')).toBe('ABCDEFG'));
     expect(document.querySelector('dialog')!.getAttribute('data-theme')).toBe('dark');
+  });
+});
+
+describe('enrollment_off: no phone, and the route may not link one (a final 202)', () => {
+  const off = () => json({ touchque: { state: 'enroll', reason: 'enrollment_off' }, token: 't1' }, 202);
+
+  test('useTouchqueAction: status error with the step to show; a route\'s own 202 is done', async () => {
+    const r = relay([off(), json({ queued: true }, 202)]);
+    const { result } = renderHook(() => useTouchqueAction({ baseUrl: '/tq', fetch: r.fetch }));
+    let res!: Response;
+    await act(async () => { res = await result.current.run('/api/pay', { method: 'POST' }); });
+    expect(res.status).toBe(202);
+    expect(result.current.status).toBe('error');
+    expect(result.current.step).toEqual({ state: 'enroll', reason: 'enrollment_off' });
+    expect(r.fetch).toHaveBeenCalledTimes(1);
+    await act(async () => { res = await result.current.run('/api/export', { method: 'POST' }); });
+    expect(await res.json()).toEqual({ queued: true });
+    expect(result.current.status).toBe('done');
+  });
+
+  test('the README quick start shows the not-linked text', async () => {
+    const r = relay([off()]);
+    function TransferButton() {
+      const { run, status, step } = useTouchqueAction({ baseUrl: '/touchque', credentials: 'include', fetch: r.fetch });
+      const send = () => run('/api/transfer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: 100 }) });
+      return (
+        <>
+          <button onClick={send} disabled={status === 'pending'}>Send</button>
+          {step?.state === 'waiting' && step.number && <p>Approve {step.number} on your phone</p>}
+          {step?.enroll && <img src={step.enroll.qrCodeDataUrl} alt="Scan with Touchque" />}
+          {step?.reason === 'enrollment_off' && <p>No phone is linked to this account yet. Link the Touchque app first.</p>}
+        </>
+      );
+    }
+    render(<TransferButton />);
+    fireEvent.click(screen.getByText('Send'));
+    await screen.findByText('No phone is linked to this account yet. Link the Touchque app first.');
+    expect(screen.queryByAltText('Scan with Touchque')).toBeNull();
+  });
+
+  test('the dialog: fetch rejects (TouchqueWebAPIError 202) and shows the not-linked error; the README pattern never says "Sent"', async () => {
+    const r = relay([off()]);
+    const toast = vi.fn();
+    const failures: unknown[] = [];
+    function SendMoney() {
+      const approval = useTouchqueApproval({ baseUrl: '/tq', fetch: r.fetch }, { pollIntervalMs: 1 });
+      const send = async () => {
+        try {
+          const res = await approval.fetch('/api/transfer', { method: 'POST', body: JSON.stringify({ amount: 250 }) });
+          if (res.ok) toast('Sent');
+        } catch (err) {
+          failures.push(err); // closed, or no phone linked (enrollment_off): the dialog shows why
+        }
+      };
+      return (<><button onClick={send}>Send</button><TouchqueApproval approval={approval} /></>);
+    }
+    render(<SendMoney />);
+    fireEvent.click(screen.getByText('Send'));
+    await screen.findByText('No phone is linked to this account yet. Link the Touchque app first.');
+    await waitFor(() => expect(failures).toHaveLength(1));
+    expect(failures[0]).toMatchObject({ name: 'TouchqueWebAPIError', status: 202 });
+    expect(toast).not.toHaveBeenCalled();
   });
 });
